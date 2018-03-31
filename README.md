@@ -6,7 +6,7 @@ A generative art project in progress.
 
 Clone the repo and then run:
 
-```
+```bash
 npm install
 npm start
 ```
@@ -18,7 +18,7 @@ build. Edit files in `/src` and see the changes reflected in the browser.
 
 No tests right now. But, to run lint checks:
 
-```
+```bash
 npm run lint
 ```
 
@@ -26,7 +26,7 @@ npm run lint
 
 Run:
 
-```
+```bash
 npm run build
 npm run deploy
 ```
