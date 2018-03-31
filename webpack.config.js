@@ -42,6 +42,7 @@ module.exports = {
       filename: '[name].css',
     }),
   ],
+  devtool: 'cheap-module-eval-source-map',
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     host: '0.0.0.0',
