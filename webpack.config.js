@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const env = process.env.NODE_ENV;
 
 module.exports = {
-  entry: './src/transport.js',
+  entry: './src/transport.ts',
   output: {
     filename: 'transport.js',
     path: path.resolve(__dirname, 'dist'),
@@ -18,9 +18,21 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env'],
+            presets: [
+              '@babel/preset-env',
+            ],
+            plugins: [
+              '@babel/proposal-class-properties',
+              '@babel/proposal-object-rest-spread',
+            ],
+            cacheDirectory: env === 'development',
           },
         },
+      },
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
@@ -32,6 +44,9 @@ module.exports = {
           : ['style-loader', 'css-loader'],
       },
     ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
   },
   plugins: [
     new HtmlWebpackPlugin({
