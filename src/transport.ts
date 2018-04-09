@@ -9,6 +9,8 @@ import './style.css';
 const maxSpeed = 10.0;
 const acceleration = 0.25;
 
+const trainTexts: PIXI.Text[] = [];
+
 const isPointDistant = (point: PIXI.Point, stations: Station[], minDistance: number): boolean => {
   for (const station of stations) {
     if (distance(point, station.location) < minDistance) {
@@ -40,7 +42,10 @@ const initStations = (numStations: number): Station[] => {
 
 const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
   for (const station of stations) {
-    graphics.drawCircle(station.location.x, station.location.y, station.population / 60);
+    const radius = station.population / 60;
+    graphics.drawCircle(station.location.x, station.location.y, radius);
+    station.label.x = station.location.x + radius + 1;
+    station.label.y = station.location.y + radius + 1;
   }
 };
 
@@ -83,8 +88,8 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
     // advance train
     const progress = train.speed / journeyLeft;
     train.location = new PIXI.Point(
-      train.location.x + (Math.abs(train.location.x - train.destination.location.x) * progress),
-      train.location.y + (Math.abs(train.location.y - train.destination.location.y) * progress),
+      train.location.x + ((train.destination.location.x - train.location.x) * progress),
+      train.location.y + ((train.destination.location.y - train.location.y) * progress),
     );
   }
 };
@@ -92,6 +97,8 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
 const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
     graphics.drawCircle(train.location.x, train.location.y, 2);
+    train.label.x = train.location.x + 1;
+    train.label.y = train.location.y + 1;
   }
 };
 
@@ -118,12 +125,12 @@ const run = () => {
   fpsText.y = 0;
 
   // make these const
-  let stations = initStations(30);
-  let trains = initTrains(15, stations);
+  // let stations = initStations(30);
+  // let trains = initTrains(15, stations);
   // let line = new Line(stations, 10);
 
-  stations = initStations(30);
-  trains = initTrains(15, stations);
+  const stations = initStations(30);
+  const trains = initTrains(15, stations);
 
   ticker.stop();
   ticker.add((deltaTime) => {
@@ -141,6 +148,13 @@ const run = () => {
 
   app.stage.addChild(graphics);
   app.stage.addChild(fpsText);
+  // Add debug labels
+  for (const train of trains) {
+    app.stage.addChild(train.label);
+  }
+  for (const station of stations) {
+    app.stage.addChild(station.label);
+  }
   document.body.appendChild(app.view);
 
   window.addEventListener('resize', () => {

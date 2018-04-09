@@ -1,5 +1,7 @@
 import { distance } from './utils';
 
+let stationCount = 0;
+
 export default class Station {
   // Utility methods for working with arrays of Stations
   public static largestStation(stations: Station[]): Station {
@@ -26,10 +28,21 @@ export default class Station {
   public location: PIXI.Point;
   public population: number;
   public connections: Station[];
+  public id: number;
+  public label: PIXI.Text;
 
   constructor(location: PIXI.Point, population: number, connections?: Station[]) {
     this.location = location;
     this.population = population;
     this.connections = connections;
+
+    // for debugging
+    stationCount += 1;
+    this.id = stationCount;
+    this.label = new PIXI.Text(`${this.id}`, {
+      fill: 'orange',
+      fontFamily: 'monospace',
+      fontSize: '12px',
+    });
   }
 }
