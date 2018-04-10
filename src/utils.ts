@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 
+const EPSILON = 1.0;
+
 export const randomInt = (min: number, max: number): number => (
   // inclusive of min and max
   Math.floor(Math.random() * (max - (min + 1))) + min
@@ -23,6 +25,11 @@ export const randomPoint = () => (
 
 export const pointsEqual = (pointA: PIXI.Point, pointB: PIXI.Point): boolean => (
   (pointA.x === pointB.x && pointA.y === pointB.y)
+);
+
+export const pointsAlmostEqual = (pointA: PIXI.Point, pointB: PIXI.Point): boolean => (
+  Math.abs(pointA.x - pointB.x) < EPSILON &&
+  Math.abs(pointA.y - pointB.y) < EPSILON
 );
 
 export const distance = (pointA: PIXI.Point, pointB: PIXI.Point): number => {

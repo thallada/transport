@@ -2,12 +2,17 @@ import * as PIXI from 'pixi.js';
 import Line from './Line';
 import Station from './Station';
 import Train from './Train';
-import { distance, pointsEqual, randomInt, randomPoint, weightedRandom } from './utils';
+import { distance, pointsAlmostEqual, pointsEqual, randomInt, randomPoint,
+         weightedRandom } from './utils';
 
 import './style.css';
 
-const maxSpeed = 10.0;
-const acceleration = 0.25;
+const MAX_SPEED = 10.0;
+const ACCELERATION = 0.025;
+const APPROACH_DISTANCE = 3.0;
+const MAX_JOURNEY = Math.floor(Math.sqrt(
+  Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2),
+) / 4);
 
 const trainTexts: PIXI.Text[] = [];
 
@@ -53,8 +58,10 @@ const initTrains = (numTrains: number, stations: Station[]): Train[] => {
   const trains = [];
   for (let i = 0; i < numTrains; i += 1) {
     const originStation = stations[Math.floor(Math.random() * stations.length)];
-    // const destStation = stations[Math.floor(Math.random() * stations.length)];
-    trains.push(new Train(originStation.location, 0, 0, originStation, undefined));
+    trains.push(new Train(
+      new PIXI.Point(originStation.location.x, originStation.location.y),
+      0, 0, originStation, undefined),
+    );
   }
   return trains;
 };
@@ -63,34 +70,34 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
   for (const train of trains) {
     // choose a destination randomly with a bias towards larger stations
     if (train.destination === undefined) {
-      const closeStations = Station.stationsWithinRadius(stations, train.location, 500);
+      const closeStations = Station.stationsWithinRadius(stations, train.location, MAX_JOURNEY);
       const closeStationWeights = closeStations.map(station => station.population);
       train.destination = weightedRandom(closeStations, closeStationWeights);
     }
 
     // train reached destination, stop moving.
-    if (pointsEqual(train.location, train.destination.location)) {
+    if (pointsAlmostEqual(train.location, train.destination.location)) {
       train.speed = 0;
+      train.origin = train.destination;
+      train.destination = undefined;
       continue;
     }
 
     const journeyLeft = distance(train.location, train.destination.location);
-    // speeding up
-    if (train.speed < maxSpeed) {
-      train.speed += acceleration;
-    }
 
-    // slowing down
-    if ((train.speed / acceleration) >= (journeyLeft / train.speed)) {
-      train.speed -= acceleration;
+    if ((train.speed / ACCELERATION) >= ((journeyLeft / train.speed) - APPROACH_DISTANCE) &&
+        train.speed !== ACCELERATION) {
+      // slowing down
+      train.speed -= ACCELERATION;
+    } else if (train.speed < MAX_SPEED) {
+      // speeding up
+      train.speed += ACCELERATION;
     }
 
     // advance train
     const progress = train.speed / journeyLeft;
-    train.location = new PIXI.Point(
-      train.location.x + ((train.destination.location.x - train.location.x) * progress),
-      train.location.y + ((train.destination.location.y - train.location.y) * progress),
-    );
+    train.location.x += ((train.destination.location.x - train.location.x) * progress);
+    train.location.y += ((train.destination.location.y - train.location.y) * progress);
   }
 };
 
@@ -123,11 +130,6 @@ const run = () => {
   fpsText.anchor = new PIXI.ObservablePoint(null, 0, 1);
   fpsText.x = window.innerWidth;
   fpsText.y = 0;
-
-  // make these const
-  // let stations = initStations(30);
-  // let trains = initTrains(15, stations);
-  // let line = new Line(stations, 10);
 
   const stations = initStations(30);
   const trains = initTrains(15, stations);
