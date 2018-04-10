@@ -23,7 +23,7 @@ export default class Train {
     trainCount += 1;
     this.id = trainCount;
     this.label = new PIXI.Text(`${this.id}`, {
-      fill: 'white',
+      fill: '#AEAEAE',
       fontFamily: 'monospace',
       fontSize: '12px',
     });

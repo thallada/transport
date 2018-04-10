@@ -70,7 +70,9 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
   for (const train of trains) {
     // choose a destination randomly with a bias towards larger stations
     if (train.destination === undefined) {
-      const closeStations = Station.stationsWithinRadius(stations, train.location, MAX_JOURNEY);
+      const otherStations = stations.filter(station => station !== train.origin);
+      const closeStations = Station.stationsWithinRadius(otherStations, train.location,
+                                                         MAX_JOURNEY);
       const closeStationWeights = closeStations.map(station => station.population);
       train.destination = weightedRandom(closeStations, closeStationWeights);
     }
@@ -140,10 +142,14 @@ const run = () => {
 
     graphics.clear();
     fpsText.text = `${Math.round(ticker.FPS)}`;
-    graphics.lineStyle(1, 0xaeaeae, 1);
 
+    graphics.lineStyle(1, 0xFFA500, 1);
     drawStations(stations, graphics);
+
+    graphics.lineStyle(1, 0xAEAEAE, 1);
     drawTrains(trains, graphics);
+
+    // TODO: ?
     // drawLine(line, graphics);
   });
   ticker.start();

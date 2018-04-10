@@ -40,7 +40,7 @@ export default class Station {
     stationCount += 1;
     this.id = stationCount;
     this.label = new PIXI.Text(`${this.id}`, {
-      fill: 'orange',
+      fill: '#FFA500',
       fontFamily: 'monospace',
       fontSize: '12px',
     });
