@@ -37,3 +37,18 @@ export const distance = (pointA: PIXI.Point, pointB: PIXI.Point): number => {
   const distY = pointA.y - pointB.y;
   return Math.sqrt((distX * distX) + (distY * distY));
 };
+
+export const rangeMap = (num: number, inMin: number, inMax: number,
+                         outMin: number, outMax: number): number => (
+  (num - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+);
+
+// tslint:disable no-bitwise
+export const nthByte = (num: number, n: number): number => ((num >> (8 * n)) & 0xff);
+
+// FIXME: pretty sure this is wrong, just use a color library instead and then convert to hex
+export const avgHexColor = (colorA: number, colorB: number): number => (
+  (Math.round((nthByte(colorA, 2) + nthByte(colorB, 2)) / 2) & 0xFF) |
+  ((Math.round((nthByte(colorA, 1) + nthByte(colorB, 1)) / 2) & 0xFF) << 8) |
+  ((Math.round((nthByte(colorA, 0) + nthByte(colorB, 0)) / 2) & 0x0F) << 16)
+);

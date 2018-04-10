@@ -30,10 +30,12 @@ export default class Station {
   public connections: Station[];
   public id: number;
   public label: PIXI.Text;
+  public color: number;
 
-  constructor(location: PIXI.Point, population: number, connections?: Station[]) {
+  constructor(location: PIXI.Point, population: number, color: number, connections?: Station[]) {
     this.location = location;
     this.population = population;
+    this.color = color;
     this.connections = connections;
 
     // for debugging

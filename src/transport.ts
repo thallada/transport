@@ -2,8 +2,8 @@ import * as PIXI from 'pixi.js';
 import Line from './Line';
 import Station from './Station';
 import Train from './Train';
-import { distance, pointsAlmostEqual, pointsEqual, randomInt, randomPoint,
-         weightedRandom } from './utils';
+import { avgHexColor, distance, pointsAlmostEqual, pointsEqual, randomInt, randomPoint,
+         rangeMap, weightedRandom } from './utils';
 
 import './style.css';
 
@@ -13,6 +13,7 @@ const APPROACH_DISTANCE = 3.0;
 const MAX_JOURNEY = Math.floor(Math.sqrt(
   Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2),
 ) / 4);
+const TRAIN_CAPACITY = 50;
 
 const trainTexts: PIXI.Text[] = [];
 
@@ -40,18 +41,12 @@ const randomDistantPoint = (stations: Station[], minDistance: number): PIXI.Poin
 const initStations = (numStations: number): Station[] => {
   const stations: Station[] = [];
   for (let i = 0; i < numStations; i += 1) {
-    stations.push(new Station(randomDistantPoint(stations, 30), randomInt(100, 1000)));
+    stations.push(new Station(
+      randomDistantPoint(stations, 30),
+      randomInt(300, 2000),
+      randomInt(0x000000, 0xFFFFFF)));
   }
   return stations;
-};
-
-const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
-  for (const station of stations) {
-    const radius = station.population / 60;
-    graphics.drawCircle(station.location.x, station.location.y, radius);
-    station.label.x = station.location.x + radius + 1;
-    station.label.y = station.location.y + radius + 1;
-  }
 };
 
 const initTrains = (numTrains: number, stations: Station[]): Train[] => {
@@ -75,11 +70,22 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
                                                          MAX_JOURNEY);
       const closeStationWeights = closeStations.map(station => station.population);
       train.destination = weightedRandom(closeStations, closeStationWeights);
+
+      // board passengers
+      train.passengers += randomInt(0, TRAIN_CAPACITY);
+      train.origin.population -= randomInt(0, TRAIN_CAPACITY);
     }
 
-    // train reached destination, stop moving.
+    // train reached destination, stop moving and let passengers off
     if (pointsAlmostEqual(train.location, train.destination.location)) {
       train.speed = 0;
+      train.destination.population += train.passengers;
+      train.passengers = 0;
+
+      // TODO: average colors
+      // train.destination.color = avgHexColor(train.origin.color, train.destination.color);
+
+      // prepare for next journey
       train.origin = train.destination;
       train.destination = undefined;
       continue;
@@ -103,9 +109,23 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
   }
 };
 
+const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
+  for (const station of stations) {
+    const radius = station.population / 60;
+    graphics.beginFill(station.color, 0.5);
+    graphics.drawCircle(station.location.x, station.location.y, radius);
+    graphics.endFill();
+    station.label.x = station.location.x + radius + 1;
+    station.label.y = station.location.y + radius + 1;
+  }
+};
+
 const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
-    graphics.drawCircle(train.location.x, train.location.y, 2);
+    graphics.beginFill(train.origin.color, 0.8);
+    graphics.drawCircle(train.location.x, train.location.y,
+                        rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5));
+    graphics.endFill();
     train.label.x = train.location.x + 1;
     train.label.y = train.location.y + 1;
   }
@@ -134,7 +154,8 @@ const run = () => {
   fpsText.y = 0;
 
   const stations = initStations(30);
-  const trains = initTrains(15, stations);
+  const trains = initTrains(100, stations);
+  // const line = new Line(stations, 10);
 
   ticker.stop();
   ticker.add((deltaTime) => {
@@ -157,9 +178,9 @@ const run = () => {
   app.stage.addChild(graphics);
   app.stage.addChild(fpsText);
   // Add debug labels
-  for (const train of trains) {
-    app.stage.addChild(train.label);
-  }
+  // for (const train of trains) {
+    // app.stage.addChild(train.label);
+  // }
   for (const station of stations) {
     app.stage.addChild(station.label);
   }
