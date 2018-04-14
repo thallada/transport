@@ -1,6 +1,6 @@
 import * as tinycolor from 'tinycolor2';
 
-import { distance } from './utils';
+import { distance, randomPoint } from './utils';
 
 let stationCount = 0;
 
@@ -25,6 +25,28 @@ export default class Station {
     return stations.reduce(
       (prev, curr) => distance(point, prev.location) > distance(point, curr.location) ? prev : curr,
     );
+  }
+
+  public static isPointDistant(point: PIXI.Point, stations: Station[],
+                               minDistance: number): boolean {
+    for (const station of stations) {
+      if (distance(point, station.location) < minDistance) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static randomDistantPoint(stations: Station[], minDistance: number): PIXI.Point | null {
+    let tries = 100;
+    while (tries > 0) {
+      const point = randomPoint();
+      if (Station.isPointDistant(point, stations, minDistance)) {
+        return point;
+      }
+      tries -= 1;
+    }
+    return null;
   }
 
   public location: PIXI.Point;

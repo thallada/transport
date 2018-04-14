@@ -19,32 +19,11 @@ const TRAIN_CAPACITY = 50;
 
 const trainTexts: PIXI.Text[] = [];
 
-const isPointDistant = (point: PIXI.Point, stations: Station[], minDistance: number): boolean => {
-  for (const station of stations) {
-    if (distance(point, station.location) < minDistance) {
-      return false;
-    }
-  }
-  return true;
-};
-
-const randomDistantPoint = (stations: Station[], minDistance: number): PIXI.Point | null => {
-  let tries = 100;
-  while (tries > 0) {
-    const point = randomPoint();
-    if (isPointDistant(point, stations, minDistance)) {
-      return point;
-    }
-    tries -= 1;
-  }
-  return null;
-};
-
 const initStations = (numStations: number): Station[] => {
   const stations: Station[] = [];
   for (let i = 0; i < numStations; i += 1) {
     stations.push(new Station(
-      randomDistantPoint(stations, 30),
+      Station.randomDistantPoint(stations, 30),
       randomInt(300, 2000),
       tinycolor.random()));
   }
@@ -82,12 +61,15 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
     if (pointsAlmostEqual(train.location, train.destination.location)) {
       train.speed = 0;
 
+      // average destination color with passenger color weighted by ratio
+      // (a simulation of culture mixing)
       train.destination.color = tinycolor.mix(
         train.destination.color,
         train.origin.color,
         Math.round((train.passengers / train.destination.population) * 100),
       );
 
+      // transfer passengers to destination
       train.destination.population += train.passengers;
       train.passengers = 0;
 
