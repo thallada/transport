@@ -43,6 +43,8 @@
   },
   "dependencies": {
     "@types/pixi.js": "^4.7.2",
-    "pixi.js": "^4.7.1"
+    "@types/tinycolor2": "^1.4.0",
+    "pixi.js": "^4.7.1",
+    "tinycolor2": "^1.4.1"
   }
 }

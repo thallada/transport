@@ -1,3 +1,5 @@
+import * as tinycolor from 'tinycolor2';
+
 import { distance } from './utils';
 
 let stationCount = 0;
@@ -30,9 +32,10 @@ export default class Station {
   public connections: Station[];
   public id: number;
   public label: PIXI.Text;
-  public color: number;
+  public color: tinycolorInstance;
 
-  constructor(location: PIXI.Point, population: number, color: number, connections?: Station[]) {
+  constructor(location: PIXI.Point, population: number, color: tinycolorInstance,
+              connections?: Station[]) {
     this.location = location;
     this.population = population;
     this.color = color;

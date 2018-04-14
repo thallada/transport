@@ -1,8 +1,10 @@
 import * as PIXI from 'pixi.js';
+import * as tinycolor from 'tinycolor2';
+
 import Line from './Line';
 import Station from './Station';
 import Train from './Train';
-import { avgHexColor, distance, pointsAlmostEqual, pointsEqual, randomInt, randomPoint,
+import { distance, pointsAlmostEqual, pointsEqual, randomInt, randomPoint,
          rangeMap, weightedRandom } from './utils';
 
 import './style.css';
@@ -44,7 +46,7 @@ const initStations = (numStations: number): Station[] => {
     stations.push(new Station(
       randomDistantPoint(stations, 30),
       randomInt(300, 2000),
-      randomInt(0x000000, 0xFFFFFF)));
+      tinycolor.random()));
   }
   return stations;
 };
@@ -79,11 +81,15 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
     // train reached destination, stop moving and let passengers off
     if (pointsAlmostEqual(train.location, train.destination.location)) {
       train.speed = 0;
+
+      train.destination.color = tinycolor.mix(
+        train.destination.color,
+        train.origin.color,
+        Math.round((train.passengers / train.destination.population) * 100),
+      );
+
       train.destination.population += train.passengers;
       train.passengers = 0;
-
-      // TODO: average colors
-      // train.destination.color = avgHexColor(train.origin.color, train.destination.color);
 
       // prepare for next journey
       train.origin = train.destination;
@@ -112,7 +118,7 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
 const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
   for (const station of stations) {
     const radius = station.population / 60;
-    graphics.beginFill(station.color, 0.5);
+    graphics.beginFill(parseInt(station.color.toHex(), 16), 0.5);
     graphics.drawCircle(station.location.x, station.location.y, radius);
     graphics.endFill();
     station.label.x = station.location.x + radius + 1;
@@ -122,7 +128,7 @@ const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
 
 const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
-    graphics.beginFill(train.origin.color, 0.8);
+    graphics.beginFill(parseInt(train.origin.color.toHex(), 16), 0.8);
     graphics.drawCircle(train.location.x, train.location.y,
                         rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5));
     graphics.endFill();
@@ -154,7 +160,7 @@ const run = () => {
   fpsText.y = 0;
 
   const stations = initStations(30);
-  const trains = initTrains(100, stations);
+  const trains = initTrains(50, stations);
   // const line = new Line(stations, 10);
 
   ticker.stop();
