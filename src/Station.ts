@@ -70,8 +70,12 @@ export default class Station {
   public label: PIXI.Text;
   public color: tinycolorInstance;
 
-  constructor(location: PIXI.Point, population: number, color: tinycolorInstance,
-              connections?: Station[]) {
+  constructor(
+    location: PIXI.Point,
+    population: number,
+    color: tinycolorInstance,
+    connections?: Station[],
+  ) {
     this.location = location;
     this.population = population;
     this.color = color;

@@ -13,15 +13,24 @@ export default class Train {
   public id: number;
   public label: PIXI.Text;
   public color: tinycolorInstance;
+  public sprite: PIXI.Sprite;
 
-  constructor(location: PIXI.Point, speed: number, passengers: number, origin: Station,
-              destination: Station, color: tinycolorInstance) {
+  constructor(
+    location: PIXI.Point,
+    speed: number,
+    passengers: number,
+    origin: Station,
+    destination: Station,
+    color: tinycolorInstance
+  ) {
     this.location = location;
     this.speed = speed;
     this.origin = origin;
     this.destination = destination;
     this.passengers = passengers;
     this.color = color;
+
+    this.sprite = new PIXI.Sprite(PIXI.loader.resources.nodeImg.texture);
 
     // for debugging
     trainCount += 1;

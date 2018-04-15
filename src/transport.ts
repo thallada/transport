@@ -8,7 +8,10 @@ import Train from './Train';
 import { distance, pointsAlmostEqual, pointsEqual, randomInt, randomPoint,
          rangeMap, weightedRandom } from './utils';
 
+import * as imgNode from './node.png';
 import './style.css';
+
+const NODE_RES = 100;
 
 const MAX_SPEED = 10.0;
 const ACCELERATION = 0.025;
@@ -124,12 +127,19 @@ const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
 
 const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
-    graphics.beginFill(parseInt(train.color.toHex(), 16), 0.8);
-    graphics.drawCircle(train.location.x, train.location.y,
-                        rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5));
-    graphics.endFill();
-    train.label.x = train.location.x + 1;
-    train.label.y = train.location.y + 1;
+    // graphics.beginFill(parseInt(train.color.toHex(), 16), 0.8);
+    // graphics.drawCircle(train.location.x, train.location.y,
+                        // rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5));
+    // graphics.endFill();
+    const trainSize = rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5);
+    const scale = trainSize / NODE_RES;
+    train.sprite.x = train.location.x;
+    train.sprite.y = train.location.y;
+    train.sprite.scale.x = scale;
+    train.sprite.scale.y = scale;
+    train.sprite.tint = parseInt(train.color.toHex(), 16);
+    train.label.x = train.location.x + scale + 1;
+    train.label.y = train.location.y + scale + 1;
   }
 };
 
@@ -198,6 +208,10 @@ const run = () => {
 
   app.stage.addChild(graphics);
   app.stage.addChild(fpsText);
+  // add train sprites
+  for (const train of trains) {
+    app.stage.addChild(train.sprite);
+  }
   // Add debug labels
   for (const train of trains) {
     app.stage.addChild(train.label);
@@ -212,4 +226,4 @@ const run = () => {
   });
 };
 
-run();
+PIXI.loader.add('nodeImg', imgNode).load(run);

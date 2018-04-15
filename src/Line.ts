@@ -16,8 +16,13 @@ export default class Line {
   public stations: Station[];
   public color: tinycolorInstance;
 
-  constructor(stations: Station[], start: PIXI.Point, startDirection: Direction,
-              numStations: number, color: tinycolorInstance) {
+  constructor(
+    stations: Station[],
+    start: PIXI.Point,
+    startDirection: Direction,
+    numStations: number,
+    color: tinycolorInstance
+  ) {
     this.color = color;
     this.stations = [];
     let stationsLeft = stations.slice();
