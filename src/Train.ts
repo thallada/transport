@@ -21,7 +21,7 @@ export default class Train {
     passengers: number,
     origin: Station,
     destination: Station,
-    color: tinycolorInstance
+    color: tinycolorInstance,
   ) {
     this.location = location;
     this.speed = speed;

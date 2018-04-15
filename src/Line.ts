@@ -21,7 +21,7 @@ export default class Line {
     start: PIXI.Point,
     startDirection: Direction,
     numStations: number,
-    color: tinycolorInstance
+    color: tinycolorInstance,
   ) {
     this.color = color;
     this.stations = [];
