@@ -37,7 +37,7 @@ const initTrains = (numTrains: number, stations: Station[]): Train[] => {
     const originStation = stations[Math.floor(Math.random() * stations.length)];
     trains.push(new Train(
       new PIXI.Point(originStation.location.x, originStation.location.y),
-      0, 0, originStation, undefined),
+      0, 0, originStation, undefined, tinycolor('grey')),
     );
   }
   return trains;
@@ -54,8 +54,20 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
       train.destination = weightedRandom(closeStations, closeStationWeights);
 
       // board passengers
-      train.passengers += randomInt(0, TRAIN_CAPACITY);
-      train.origin.population -= randomInt(0, TRAIN_CAPACITY);
+      const boardingPassengers = randomInt(0, Math.min(TRAIN_CAPACITY - train.passengers,
+                                                       train.origin.population));
+      // set or mix train color with the color of new passenger origin
+      if (train.passengers === 0) {
+        train.color = train.origin.color;
+      } else {
+        train.color = tinycolor.mix(
+          train.color,
+          train.origin.color,
+          Math.round((boardingPassengers / train.passengers) * 100),
+        );
+      }
+      train.passengers += boardingPassengers;
+      train.origin.population -= boardingPassengers;
     }
 
     // train reached destination, stop moving and let passengers off
@@ -71,8 +83,9 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
       );
 
       // transfer passengers to destination
-      train.destination.population += train.passengers;
-      train.passengers = 0;
+      const disembarkingPassengers = randomInt(0, train.passengers);
+      train.destination.population += disembarkingPassengers;
+      train.passengers -= disembarkingPassengers;
 
       // prepare for next journey
       train.origin = train.destination;
@@ -111,7 +124,7 @@ const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
 
 const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
-    graphics.beginFill(parseInt(train.origin.color.toHex(), 16), 0.8);
+    graphics.beginFill(parseInt(train.color.toHex(), 16), 0.8);
     graphics.drawCircle(train.location.x, train.location.y,
                         rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5));
     graphics.endFill();
@@ -186,9 +199,9 @@ const run = () => {
   app.stage.addChild(graphics);
   app.stage.addChild(fpsText);
   // Add debug labels
-  // for (const train of trains) {
-    // app.stage.addChild(train.label);
-  // }
+  for (const train of trains) {
+    app.stage.addChild(train.label);
+  }
   for (const station of stations) {
     app.stage.addChild(station.label);
   }

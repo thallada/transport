@@ -1,3 +1,5 @@
+import * as tinycolor from 'tinycolor2';
+
 import Station from './Station';
 
 let trainCount = 0;
@@ -10,14 +12,16 @@ export default class Train {
   public passengers: number;
   public id: number;
   public label: PIXI.Text;
+  public color: tinycolorInstance;
 
   constructor(location: PIXI.Point, speed: number, passengers: number, origin: Station,
-              destination: Station) {
+              destination: Station, color: tinycolorInstance) {
     this.location = location;
     this.speed = speed;
     this.origin = origin;
     this.destination = destination;
     this.passengers = passengers;
+    this.color = color;
 
     // for debugging
     trainCount += 1;
