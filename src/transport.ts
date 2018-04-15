@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import * as tinycolor from 'tinycolor2';
 
+import Direction from './Direction';
 import Line from './Line';
 import Station from './Station';
 import Train from './Train';
@@ -119,11 +120,14 @@ const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   }
 };
 
-const drawLine = (line: Line, graphics: PIXI.Graphics) => {
-  const start = line.stations[0].location;
-  graphics.moveTo(start.x, start.y);
-  for (const station of line.stations.slice(1)) {
-    graphics.lineTo(station.location.x, station.location.y);
+const drawLines = (lines: Line[], graphics: PIXI.Graphics) => {
+  for (const line of lines) {
+    graphics.lineStyle(1, parseInt(line.color.toHex(), 16), 1);
+    const start = line.stations[0].location;
+    graphics.moveTo(start.x, start.y);
+    for (const station of line.stations.slice(1)) {
+      graphics.lineTo(station.location.x, station.location.y);
+    }
   }
 };
 
@@ -143,7 +147,24 @@ const run = () => {
 
   const stations = initStations(30);
   const trains = initTrains(50, stations);
-  // const line = new Line(stations, 10);
+  const lines = [
+    new Line(
+      stations, new PIXI.Point(0, 0),
+      Direction.Southeast, 12, tinycolor('red'),
+    ),
+    new Line(
+      stations, new PIXI.Point(window.innerWidth, 0),
+      Direction.Southwest, 12, tinycolor('darkcyan'),
+    ),
+    new Line(
+      stations, new PIXI.Point(window.innerWidth, window.innerHeight),
+      Direction.Northwest, 12, tinycolor('yellow'),
+    ),
+    new Line(
+      stations, new PIXI.Point(0, window.innerHeight),
+      Direction.Northeast, 12, tinycolor('green'),
+    ),
+  ];
 
   ticker.stop();
   ticker.add((deltaTime) => {
@@ -158,8 +179,7 @@ const run = () => {
     graphics.lineStyle(1, 0xAEAEAE, 1);
     drawTrains(trains, graphics);
 
-    // TODO: ?
-    // drawLine(line, graphics);
+    drawLines(lines, graphics);
   });
   ticker.start();
 

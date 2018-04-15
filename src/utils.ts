@@ -42,3 +42,11 @@ export const rangeMap = (num: number, inMin: number, inMax: number,
                          outMin: number, outMax: number): number => (
   (num - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 );
+
+export const angleRadians = (pointA: PIXI.Point, pointB: PIXI.Point): number => (
+  Math.atan2(-(pointB.x - pointA.x), pointB.y - pointA.y)
+);
+
+export const angleDegrees = (pointA: PIXI.Point, pointB: PIXI.Point): number => (
+  180 + angleRadians(pointA, pointB) * (180 / Math.PI)
+);

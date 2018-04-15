@@ -1,6 +1,7 @@
 import * as tinycolor from 'tinycolor2';
 
-import { distance, randomPoint } from './utils';
+import Direction, { getPointDirection } from './Direction';
+import { distance, randomPoint, weightedRandom } from './utils';
 
 let stationCount = 0;
 
@@ -21,10 +22,23 @@ export default class Station {
     return stations.filter(station => distance(point, station.location) <= radius);
   }
 
-  public static closestStation(stations: Station[], point: PIXI.Point, num: number): Station {
+  public static stationsInDirection(stations: Station[], point: PIXI.Point,
+                                    direction: Direction): Station[] {
+    return stations.filter(station => getPointDirection(point, station.location) === direction);
+  }
+
+  public static closestStation(stations: Station[], point: PIXI.Point): Station {
     return stations.reduce(
-      (prev, curr) => distance(point, prev.location) > distance(point, curr.location) ? prev : curr,
+      (prev, curr) => distance(point, prev.location) < distance(point, curr.location) ? prev : curr,
     );
+  }
+
+  public static randomCloseLargeStation(stations: Station[], point: PIXI.Point,
+                                        radius: number): Station {
+    const closeStations = Station.stationsWithinRadius(stations, point,
+                                                       radius);
+    const closeStationWeights = closeStations.map(station => station.population);
+    return weightedRandom(closeStations, closeStationWeights);
   }
 
   public static isPointDistant(point: PIXI.Point, stations: Station[],
