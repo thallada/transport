@@ -1,13 +1,20 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const env = process.env.NODE_ENV;
+
+const prodPlugins = env === 'production' ? [
+  new UglifyJsPlugin({
+    sourceMap: true,
+  }),
+] : [];
 
 module.exports = {
   entry: './src/transport.ts',
   output: {
-    filename: 'transport.js',
+    filename: env === 'production' ? '[name].min.js' : '[name].js',
     path: path.resolve(__dirname, 'dist'),
   },
   mode: env === 'production' ? 'production' : 'development',
@@ -61,8 +68,20 @@ module.exports = {
       disable: env === 'development',
       filename: '[name].css',
     }),
+    ...prodPlugins,
   ],
-  devtool: 'cheap-module-eval-source-map',
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
+  },
+  devtool: env === 'production' ? 'source-map' : 'cheap-module-eval-source-map',
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     host: '0.0.0.0',

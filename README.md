@@ -1,6 +1,9 @@
 # Transport
 
-A generative art project in progress.
+Work-in-progress procedurally generated train network simulation written in 
+Typescript with PixiJs.
+
+![Screenshot of simulation](img/screenshot.png)
 
 ## Development
 
