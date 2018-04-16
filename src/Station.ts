@@ -1,6 +1,7 @@
 import * as tinycolor from 'tinycolor2';
 
 import Direction, { getPointDirection } from './Direction';
+import LineConnection from './LineConnection';
 import { distance, randomPoint, weightedRandom } from './utils';
 
 let stationCount = 0;
@@ -65,7 +66,7 @@ export default class Station {
 
   public location: PIXI.Point;
   public population: number;
-  public connections: Station[];
+  public connections: LineConnection[];
   public id: number;
   public label: PIXI.Text;
   public color: tinycolorInstance;
@@ -74,12 +75,12 @@ export default class Station {
     location: PIXI.Point,
     population: number,
     color: tinycolorInstance,
-    connections?: Station[],
+    connections?: LineConnection[],
   ) {
     this.location = location;
     this.population = population;
     this.color = color;
-    this.connections = connections;
+    this.connections = connections || [];
 
     // for debugging
     stationCount += 1;

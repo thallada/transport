@@ -10,6 +10,7 @@ module.exports = {
     filename: 'transport.js',
     path: path.resolve(__dirname, 'dist'),
   },
+  mode: env === 'production' ? 'production' : 'development',
   module: {
     rules: [
       {

@@ -1,4 +1,6 @@
+import * as Viewport from 'pixi-viewport';
 import * as PIXI from 'pixi.js';
+import * as Stats from 'stats.js';
 import * as tinycolor from 'tinycolor2';
 
 import Direction from './Direction';
@@ -16,10 +18,14 @@ const NODE_RES = 100;
 const MAX_SPEED = 10.0;
 const ACCELERATION = 0.025;
 const APPROACH_DISTANCE = 3.0;
-const MAX_JOURNEY = Math.floor(Math.sqrt(
-  Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2),
-) / 4);
 const TRAIN_CAPACITY = 50;
+const LINE_CONNECTION_LIMIT = 5;
+const WORLD_WIDTH = 1000;
+const WORLD_HEIGHT = 1000;
+const ZOOM_MIN_WIDTH = 100;
+const ZOOM_MIN_HEIGHT = 100;
+const ZOOM_MAX_WIDTH = 4000;
+const ZOOM_MAX_HEIGHT = 4000;
 
 const trainTexts: PIXI.Text[] = [];
 
@@ -36,8 +42,11 @@ const initStations = (numStations: number): Station[] => {
 
 const initTrains = (numTrains: number, stations: Station[]): Train[] => {
   const trains = [];
+  const stationsWithConnections = stations.filter(station => station.connections.length > 0);
   for (let i = 0; i < numTrains; i += 1) {
-    const originStation = stations[Math.floor(Math.random() * stations.length)];
+    const originStation = stationsWithConnections[
+      Math.floor(Math.random() * stationsWithConnections.length)
+    ];
     trains.push(new Train(
       new PIXI.Point(originStation.location.x, originStation.location.y),
       0, 0, originStation, undefined, tinycolor('grey')),
@@ -46,15 +55,36 @@ const initTrains = (numTrains: number, stations: Station[]): Train[] => {
   return trains;
 };
 
+const initLines = (numLines: number, stations: Station[]): Line[] => {
+  const lines = [];
+  for (let i = 0; i < numLines; i += 1) {
+    let color = tinycolor.random();
+    while (color.isDark()) {
+      color = tinycolor.random();
+    }
+    const stationsWithoutConnections = stations.filter(station =>
+      station.connections.length === 0,
+    );
+    const centralHub = Station.largestStation(stationsWithoutConnections);
+    const line = new Line(`line-${i}`, tinycolor.random());
+    const stationsLeft = stations.slice(0);
+    line.connectStations(centralHub, stationsLeft, [], LINE_CONNECTION_LIMIT);
+    lines.push(line);
+  }
+  return lines;
+};
+
 const moveTrains = (trains: Train[], stations: Station[]) => {
   for (const train of trains) {
+    if (train.origin.connections.length === 0) {
+      // train is stuck at an orphaned station
+      continue;
+    }
     // choose a destination randomly with a bias towards larger stations
     if (train.destination === undefined) {
-      const otherStations = stations.filter(station => station !== train.origin);
-      const closeStations = Station.stationsWithinRadius(otherStations, train.location,
-                                                         MAX_JOURNEY);
-      const closeStationWeights = closeStations.map(station => station.population);
-      train.destination = weightedRandom(closeStations, closeStationWeights);
+      const otherStations = train.origin.connections.map(conn => conn.station);
+      const closeStationWeights = otherStations.map(station => station.population);
+      train.destination = weightedRandom(otherStations, closeStationWeights);
 
       // board passengers
       const boardingPassengers = randomInt(0, Math.min(TRAIN_CAPACITY - train.passengers,
@@ -116,7 +146,7 @@ const moveTrains = (trains: Train[], stations: Station[]) => {
 
 const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
   for (const station of stations) {
-    const radius = station.population / 60;
+    const radius = station.population / 150;
     graphics.beginFill(parseInt(station.color.toHex(), 16), 0.5);
     graphics.drawCircle(station.location.x, station.location.y, radius);
     graphics.endFill();
@@ -127,10 +157,6 @@ const drawStations = (stations: Station[], graphics: PIXI.Graphics) => {
 
 const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
-    // graphics.beginFill(parseInt(train.color.toHex(), 16), 0.8);
-    // graphics.drawCircle(train.location.x, train.location.y,
-                        // rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5));
-    // graphics.endFill();
     const trainSize = rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5);
     const scale = trainSize / NODE_RES;
     train.sprite.x = train.location.x;
@@ -143,13 +169,18 @@ const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   }
 };
 
-const drawLines = (lines: Line[], graphics: PIXI.Graphics) => {
-  for (const line of lines) {
-    graphics.lineStyle(1, parseInt(line.color.toHex(), 16), 1);
-    const start = line.stations[0].location;
-    graphics.moveTo(start.x, start.y);
-    for (const station of line.stations.slice(1)) {
-      graphics.lineTo(station.location.x, station.location.y);
+const drawLines = (stations: Station[], graphics: PIXI.Graphics) => {
+  for (const station of stations) {
+    for (const connection of station.connections) {
+      let twoWay = false;
+      for (const conn of connection.station.connections) {
+        if (conn.station === station) {
+          twoWay = true;
+        }
+      }
+      graphics.lineStyle(twoWay ? 2 : 1, parseInt(connection.line.color.toHex(), 16), 1);
+      graphics.moveTo(station.location.x, station.location.y);
+      graphics.lineTo(connection.station.location.x, connection.station.location.y);
     }
   }
 };
@@ -160,41 +191,29 @@ const run = () => {
     height: window.innerHeight,
     width: window.innerWidth,
   });
+  const viewport = new Viewport({
+    screenHeight: window.innerHeight,
+    screenWidth: window.innerWidth,
+    worldHeight: WORLD_HEIGHT,
+    worldWidth: WORLD_WIDTH,
+  });
+  const stats = new Stats();
+  stats.showPanel(0);
+  document.body.appendChild(stats.dom);
   const ticker = new PIXI.ticker.Ticker();
   const graphics = new PIXI.Graphics();
-  const fpsText = new PIXI.Text('', { fontSize: '25px', fontFamily: 'monospace', fill: 'yellow' });
-
-  fpsText.anchor = new PIXI.ObservablePoint(null, 0, 1);
-  fpsText.x = window.innerWidth;
-  fpsText.y = 0;
 
   const stations = initStations(30);
+  const lines = initLines(4, stations);
   const trains = initTrains(50, stations);
-  const lines = [
-    new Line(
-      stations, new PIXI.Point(0, 0),
-      Direction.Southeast, 12, tinycolor('red'),
-    ),
-    new Line(
-      stations, new PIXI.Point(window.innerWidth, 0),
-      Direction.Southwest, 12, tinycolor('darkcyan'),
-    ),
-    new Line(
-      stations, new PIXI.Point(window.innerWidth, window.innerHeight),
-      Direction.Northwest, 12, tinycolor('yellow'),
-    ),
-    new Line(
-      stations, new PIXI.Point(0, window.innerHeight),
-      Direction.Northeast, 12, tinycolor('green'),
-    ),
-  ];
 
   ticker.stop();
   ticker.add((deltaTime) => {
+    stats.begin();
+
     moveTrains(trains, stations);
 
     graphics.clear();
-    fpsText.text = `${Math.round(ticker.FPS)}`;
 
     graphics.lineStyle(1, 0xFFA500, 1);
     drawStations(stations, graphics);
@@ -202,24 +221,32 @@ const run = () => {
     graphics.lineStyle(1, 0xAEAEAE, 1);
     drawTrains(trains, graphics);
 
-    drawLines(lines, graphics);
+    drawLines(stations, graphics);
+
+    stats.end();
   });
   ticker.start();
 
-  app.stage.addChild(graphics);
-  app.stage.addChild(fpsText);
+  viewport.addChild(graphics);
   // add train sprites
   for (const train of trains) {
-    app.stage.addChild(train.sprite);
+    viewport.addChild(train.sprite);
   }
   // Add debug labels
   for (const train of trains) {
-    app.stage.addChild(train.label);
+    viewport.addChild(train.label);
   }
   for (const station of stations) {
-    app.stage.addChild(station.label);
+    viewport.addChild(station.label);
   }
   document.body.appendChild(app.view);
+  app.stage.addChild(viewport);
+  viewport.drag().pinch().wheel().clampZoom({
+    maxHeight: ZOOM_MAX_HEIGHT,
+    maxWidth: ZOOM_MAX_WIDTH,
+    minHeight: ZOOM_MIN_HEIGHT,
+    minWidth: ZOOM_MIN_WIDTH,
+  }).decelerate();
 
   window.addEventListener('resize', () => {
     app.renderer.resize(window.innerWidth, window.innerHeight);
