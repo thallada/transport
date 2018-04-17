@@ -65,7 +65,12 @@ const initLines = (numLines: number, stations: Station[]): Line[] => {
     const stationsWithoutConnections = stations.filter(station =>
       station.connections.length === 0,
     );
-    const centralHub = Station.largestStation(stationsWithoutConnections);
+    let centralHub: Station;
+    if (stationsWithoutConnections.length > 0) {
+      centralHub = Station.largestStation(stationsWithoutConnections);
+    } else {
+      centralHub = stations[randomInt(0, stations.length - 1)];
+    }
     const line = new Line(`line-${i}`, tinycolor.random());
     const stationsLeft = stations.slice(0);
     line.connectStations(centralHub, stationsLeft, [], LINE_CONNECTION_LIMIT);
@@ -203,8 +208,15 @@ const run = () => {
   const ticker = new PIXI.ticker.Ticker();
   const graphics = new PIXI.Graphics();
 
-  const stations = initStations(30);
-  const lines = initLines(4, stations);
+  let stations: Station[] = [];
+  let lines: Line[] = [];
+  let stationsWithConnections: Station[] = [];
+  while (stationsWithConnections.length === 0) {
+    // If all stations are too far away to connect, try generating again
+    stations = initStations(30);
+    lines = initLines(4, stations);
+    stationsWithConnections = stations.filter(station => station.connections.length > 0);
+  }
   const trains = initTrains(50, stations);
 
   ticker.stop();
