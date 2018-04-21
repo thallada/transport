@@ -71,6 +71,8 @@ export default class Station {
   public label: PIXI.Text;
   public color: tinycolorInstance;
 
+  private textStyle: object;
+
   constructor(
     location: PIXI.Point,
     population: number,
@@ -85,10 +87,15 @@ export default class Station {
     // for debugging
     stationCount += 1;
     this.id = stationCount;
-    this.label = new PIXI.Text(`${this.id}`, {
+    this.textStyle = {
       fill: '#FFA500',
       fontFamily: 'monospace',
       fontSize: '12px',
-    });
+    };
+    this.renderLabel();
+  }
+
+  public renderLabel() {
+    this.label = new PIXI.Text(`${this.id}`, this.textStyle);
   }
 }

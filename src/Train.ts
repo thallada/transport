@@ -15,6 +15,8 @@ export default class Train {
   public color: tinycolorInstance;
   public sprite: PIXI.Sprite;
 
+  private textStyle: object;
+
   constructor(
     location: PIXI.Point,
     speed: number,
@@ -35,15 +37,20 @@ export default class Train {
     // for debugging
     trainCount += 1;
     this.id = trainCount;
-    this.label = new PIXI.Text(`${this.id}`, {
+    this.textStyle = {
       fill: '#AEAEAE',
       fontFamily: 'monospace',
       fontSize: '12px',
-    });
+    };
+    this.renderLabel();
   }
 
   public boardPassengers() {
     if (this.location === this.origin.location) { // about to leave a station
     }
+  }
+
+  public renderLabel() {
+    this.label = new PIXI.Text(`${this.id}`, this.textStyle);
   }
 }
