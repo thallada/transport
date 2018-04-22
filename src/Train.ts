@@ -33,6 +33,7 @@ export default class Train {
     this.color = color;
 
     this.sprite = new PIXI.Sprite(PIXI.loader.resources.nodeImg.texture);
+    this.sprite.visible = false;
 
     // for debugging
     trainCount += 1;

@@ -164,6 +164,7 @@ const drawTrains = (trains: Train[], graphics: PIXI.Graphics) => {
   for (const train of trains) {
     const trainSize = rangeMap(train.passengers, 0, TRAIN_CAPACITY, 1, 5);
     const scale = trainSize / NODE_RES;
+    train.sprite.visible = true;
     train.sprite.x = train.location.x;
     train.sprite.y = train.location.y;
     train.sprite.scale.x = scale;
