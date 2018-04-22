@@ -41,7 +41,8 @@
     "uglifyjs-webpack-plugin": "^1.2.4",
     "webpack": "^4.4.1",
     "webpack-cli": "^2.0.13",
-    "webpack-dev-server": "^3.1.1"
+    "webpack-dev-server": "^3.1.1",
+    "worker-loader": "^1.1.1"
   },
   "dependencies": {
     "@types/pixi.js": "^4.7.2",

@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import Point from 'pixi.js/lib/core/math/Point';
 
 const EPSILON = 1.0;
 
@@ -19,20 +19,20 @@ export const weightedRandom = (choices: any[], weights: number[]): any => {
   }
 };
 
-export const randomPoint = () => (
-  new PIXI.Point(randomInt(0, window.innerWidth), randomInt(0, window.innerHeight))
+export const randomPoint = (height: number, width: number): Point => (
+  new Point(randomInt(0, width), randomInt(0, height))
 );
 
-export const pointsEqual = (pointA: PIXI.Point, pointB: PIXI.Point): boolean => (
+export const pointsEqual = (pointA: Point, pointB: Point): boolean => (
   (pointA.x === pointB.x && pointA.y === pointB.y)
 );
 
-export const pointsAlmostEqual = (pointA: PIXI.Point, pointB: PIXI.Point): boolean => (
+export const pointsAlmostEqual = (pointA: Point, pointB: Point): boolean => (
   Math.abs(pointA.x - pointB.x) < EPSILON &&
   Math.abs(pointA.y - pointB.y) < EPSILON
 );
 
-export const distance = (pointA: PIXI.Point, pointB: PIXI.Point): number => {
+export const distance = (pointA: Point, pointB: Point): number => {
   const distX = pointA.x - pointB.x;
   const distY = pointA.y - pointB.y;
   return Math.sqrt((distX * distX) + (distY * distY));
@@ -43,10 +43,10 @@ export const rangeMap = (num: number, inMin: number, inMax: number,
   (num - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 );
 
-export const angleRadians = (pointA: PIXI.Point, pointB: PIXI.Point): number => (
+export const angleRadians = (pointA: Point, pointB: Point): number => (
   Math.atan2(-(pointB.x - pointA.x), pointB.y - pointA.y)
 );
 
-export const angleDegrees = (pointA: PIXI.Point, pointB: PIXI.Point): number => (
+export const angleDegrees = (pointA: Point, pointB: Point): number => (
   180 + angleRadians(pointA, pointB) * (180 / Math.PI)
 );

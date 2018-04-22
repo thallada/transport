@@ -5,17 +5,13 @@ import LineConnection from './LineConnection';
 import Station from './Station';
 import { distance, randomInt, randomPoint } from './utils';
 
-const CONNECTION_RADIUS = Math.floor(Math.sqrt(
-  Math.pow(window.innerWidth, 2) + Math.pow(window.innerHeight, 2),
-) / 8);
-
 export default class Line {
   public name: string;
-  public color: tinycolorInstance;
+  public color: ColorFormats.RGBA;
 
   constructor(
     name: string,
-    color: tinycolorInstance,
+    color: ColorFormats.RGBA,
   ) {
     this.name = name;
     this.color = color;
@@ -26,13 +22,14 @@ export default class Line {
     stations: Station[],
     visitedStations: Station[],
     connectionLimit: number,
+    connectionRadius: number,
   ) {
     visitedStations.push(currentStation);
     const otherStations = stations.filter(station => station !== currentStation);
     const closeStations = Station.stationsWithinRadius(
       otherStations,
       currentStation.location,
-      CONNECTION_RADIUS,
+      connectionRadius,
     );
     for (let i = 0; i < connectionLimit; i += 1) {
       if (closeStations.length < 1) {
@@ -51,6 +48,7 @@ export default class Line {
           stations,
           visitedStations,
           connectionLimit,
+          connectionRadius,
         );
       }
     }

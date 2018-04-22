@@ -1,3 +1,4 @@
+import Point from 'pixi.js/lib/core/math/Point';
 import * as tinycolor from 'tinycolor2';
 
 import Direction, { getPointDirection } from './Direction';
@@ -18,23 +19,23 @@ export default class Station {
     return largest;
   }
 
-  public static stationsWithinRadius(stations: Station[], point: PIXI.Point,
+  public static stationsWithinRadius(stations: Station[], point: Point,
                                      radius: number): Station[] {
     return stations.filter(station => distance(point, station.location) <= radius);
   }
 
-  public static stationsInDirection(stations: Station[], point: PIXI.Point,
+  public static stationsInDirection(stations: Station[], point: Point,
                                     direction: Direction): Station[] {
     return stations.filter(station => getPointDirection(point, station.location) === direction);
   }
 
-  public static closestStation(stations: Station[], point: PIXI.Point): Station {
+  public static closestStation(stations: Station[], point: Point): Station {
     return stations.reduce(
       (prev, curr) => distance(point, prev.location) < distance(point, curr.location) ? prev : curr,
     );
   }
 
-  public static randomCloseLargeStation(stations: Station[], point: PIXI.Point,
+  public static randomCloseLargeStation(stations: Station[], point: Point,
                                         radius: number): Station {
     const closeStations = Station.stationsWithinRadius(stations, point,
                                                        radius);
@@ -42,7 +43,7 @@ export default class Station {
     return weightedRandom(closeStations, closeStationWeights);
   }
 
-  public static isPointDistant(point: PIXI.Point, stations: Station[],
+  public static isPointDistant(point: Point, stations: Station[],
                                minDistance: number): boolean {
     for (const station of stations) {
       if (distance(point, station.location) < minDistance) {
@@ -52,10 +53,15 @@ export default class Station {
     return true;
   }
 
-  public static randomDistantPoint(stations: Station[], minDistance: number): PIXI.Point | null {
+  public static randomDistantPoint(
+    stations: Station[],
+    minDistance: number,
+    height: number,
+    width: number,
+  ): Point | null {
     let tries = 100;
     while (tries > 0) {
-      const point = randomPoint();
+      const point = randomPoint(height, width);
       if (Station.isPointDistant(point, stations, minDistance)) {
         return point;
       }
@@ -64,19 +70,16 @@ export default class Station {
     return null;
   }
 
-  public location: PIXI.Point;
+  public location: Point;
   public population: number;
   public connections: LineConnection[];
   public id: number;
-  public label: PIXI.Text;
-  public color: tinycolorInstance;
-
-  private textStyle: object;
+  public color: ColorFormats.RGBA;
 
   constructor(
-    location: PIXI.Point,
+    location: Point,
     population: number,
-    color: tinycolorInstance,
+    color: ColorFormats.RGBA,
     connections?: LineConnection[],
   ) {
     this.location = location;
@@ -87,15 +90,5 @@ export default class Station {
     // for debugging
     stationCount += 1;
     this.id = stationCount;
-    this.textStyle = {
-      fill: '#FFA500',
-      fontFamily: 'monospace',
-      fontSize: '12px',
-    };
-    this.renderLabel();
-  }
-
-  public renderLabel() {
-    this.label = new PIXI.Text(`${this.id}`, this.textStyle);
   }
 }
